@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="sr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zubna Laboratorija Bulić</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #000000;
+      }
+      body.loaded {
+        overflow: auto;
+        background-color: white;
+      }
+      #preloader {
+        position: fixed;
+        inset: 0;
+        background-color: #000000;
+        z-index: 99999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+      
+      /* Phase 2: Navy Bleed */
+      .navy-bleed {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, #0D1B2A 0%, transparent 0%);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+      }
+      .navy-bleed.active {
+        opacity: 1;
+        animation: bleedIn 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      @keyframes bleedIn {
+        to { background: radial-gradient(circle at center, #0D1B2A 150%, transparent 150%); }
+      }
+
+      /* Particles */
+      .particle {
+        position: absolute;
+        background-color: #C9A84C;
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0;
+      }
+
+      /* Phase 3: Logo Assembly */
+      .logo-assembly {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      .logo-assembly.active {
+        opacity: 1;
+        transform: scale(1);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+
+      .bracket {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #C9A84C;
+        opacity: 0;
+      }
+      .bracket-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+      .bracket-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+      .bracket-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+      .bracket-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+      .logo-assembly.draw-brackets .bracket {
+        animation: drawBracket 0.4s ease forwards;
+      }
+      @keyframes drawBracket {
+        from { width: 0; height: 0; opacity: 0; }
+        to { width: 20px; height: 20px; opacity: 1; }
+      }
+
+      .logo-bg {
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        background-color: white;
+        border-radius: 12px;
+        transform: scale(0);
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .logo-assembly.show-bg .logo-bg {
+        transform: scale(1);
+      }
+
+      .logo-b-letter {
+        position: relative;
+        font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+        font-size: 48px;
+        font-weight: bold;
+        color: #0D1B2A;
+        opacity: 0;
+        transform: scale(3);
+      }
+      .logo-assembly.slam-b .logo-b-letter {
+        animation: slamB 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      }
+      @keyframes slamB {
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      /* Phase 4: Text Reveal */
+      .text-reveal {
+        position: absolute;
+        top: calc(50% + 100px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .zubna-text {
+        color: white;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: clamp(14px, 4vw, 18px);
+        letter-spacing: 0.3em;
+        font-weight: 500;
+        display: flex;
+        margin-bottom: 10px;
+      }
+      .zubna-text span {
+        display: inline-block;
+        transform: translateY(-40px);
+        opacity: 0;
+      }
+      .zubna-text.active span {
+        animation: dropLetter 0.5s ease forwards;
+      }
+      @keyframes dropLetter {
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .gold-line-reveal {
+        width: 0;
+        height: 1px;
+        background-color: #C9A84C;
+        margin-bottom: 15px;
+      }
+      .gold-line-reveal.active {
+        animation: drawGoldLine 0.6s ease forwards;
+      }
+      @keyframes drawGoldLine {
+        to { width: 120px; }
+      }
+
+      .bulic-text {
+        color: #C9A84C;
+        font-family: ui-serif, Georgia, serif;
+        font-size: clamp(20px, 6vw, 28px);
+        letter-spacing: 0.4em;
+        font-weight: bold;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      .bulic-text.active {
+        animation: fadeUp 0.6s ease forwards;
+      }
+      @keyframes fadeUp {
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .est-text {
+        font-style: italic;
+        font-size: 12px;
+        color: white;
+        opacity: 0;
+        margin-top: 10px;
+      }
+      .est-text.active {
+        animation: fadeInSimple 0.6s ease forwards;
+      }
+      @keyframes fadeInSimple {
+        to { opacity: 0.5; }
+      }
+
+      /* Phase 5: Heartbeat & Ripple */
+      .preloader-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: transform 0.4s ease-in-out;
+      }
+      .preloader-content-wrapper.pulse {
+        animation: heartbeat 0.4s ease-in-out;
+      }
+      @keyframes heartbeat {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.04); }
+        100% { transform: scale(1); }
+      }
+
+      .ripple {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border: 1px solid #C9A84C;
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .ripple.active {
+        animation: rippleEffect 0.6s ease-out forwards;
+      }
+      @keyframes rippleEffect {
+        0% { transform: scale(0); opacity: 1; }
+        100% { transform: scale(3); opacity: 0; }
+      }
+
+      /* Phase 6: Cinematic Exit */
+      .cinematic-bar {
+        position: fixed;
+        left: 0;
+        width: 100%;
+        height: 50vh;
+        background-color: #000000;
+        z-index: 100000;
+        transform: translateY(-100%);
+        pointer-events: none;
+      }
+      .bar-top { top: 0; transform: translateY(-100%); }
+      .bar-bottom { bottom: 0; transform: translateY(100%); }
+
+      .cinematic-bar.slam {
+        transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1);
+        transform: translateY(0);
+      }
+      .cinematic-bar.split-top {
+        transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+        transform: translateY(-100%);
+      }
+      .cinematic-bar.split-bottom {
+        transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+        transform: translateY(100%);
+      }
+
+      #main-content {
+        opacity: 0;
+        visibility: hidden;
+      }
+      #main-content.visible {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.5s ease;
+      }
+
+      /* Scroll Animations (Preserved) */
+      .animate-on-scroll {
+        opacity: 0;
+        transition: opacity 0.7s cubic-bezier(0.4,0,0.2,1), 
+                    transform 0.7s cubic-bezier(0.4,0,0.2,1),
+                    letter-spacing 1.5s cubic-bezier(0.4,0,0.2,1);
+      }
+      .animate-on-scroll.animated {
+        opacity: 1;
+        transform: none !important;
+      }
+      .slide-down { transform: translateY(-100%); }
+      .slide-up { transform: translateY(50px); }
+      .slide-left { transform: translateX(-80px); }
+      .slide-right { transform: translateX(80px); }
+      .slide-right-img { transform: translateX(60px); }
+      .scale-up { transform: scale(0.8); }
+      .scale-pop { transform: scale(0); }
+      .scale-bounce { transform: scale(0); }
+      .scale-bounce.animated { animation: bounceIn 0.7s cubic-bezier(0.4,0,0.2,1) forwards; }
+      .zoom-in { transform: scale(1.05); transition-duration: 1.5s; }
+      .rotate-badge { transform: rotate(-15deg); }
+      .letter-spacing-expand { letter-spacing: 0.2em; }
+      .letter-spacing-expand.animated { letter-spacing: 0.4em !important; }
+
+      @keyframes bounceIn {
+        0% { transform: scale(0); opacity: 0; }
+        60% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+
+      @media (max-width: 768px) {
+        .slide-up { transform: translateY(25px); }
+        .slide-left { transform: translateX(-40px); }
+        .slide-right { transform: translateX(40px); }
+        .slide-right-img { transform: translateX(30px); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="preloader">
+      <div class="navy-bleed" id="navy-bleed"></div>
+      <div class="ripple" id="ripple"></div>
+      
+      <div class="preloader-content-wrapper" id="content-wrapper">
+        <div class="logo-assembly" id="logo-assembly">
+          <div class="bracket bracket-tl"></div>
+          <div class="bracket bracket-tr"></div>
+          <div class="bracket bracket-bl"></div>
+          <div class="bracket bracket-br"></div>
+          <div class="logo-bg"></div>
+          <div class="logo-b-letter">B</div>
+        </div>
+
+        <div class="text-reveal">
+          <div class="zubna-text" id="zubna-text"></div>
+          <div class="gold-line-reveal" id="gold-line"></div>
+          <div class="bulic-text" id="bulic-text">BULIĆ</div>
+          <div class="est-text" id="est-text">Od 1990.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cinematic-bar bar-top" id="bar-top"></div>
+    <div class="cinematic-bar bar-bottom" id="bar-bottom"></div>
+    
+    <div id="main-content">
+      <div id="root"></div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const preloader = document.getElementById('preloader');
+        const mainContent = document.getElementById('main-content');
+        const navyBleed = document.getElementById('navy-bleed');
+        const logoAssembly = document.getElementById('logo-assembly');
+        const zubnaText = document.getElementById('zubna-text');
+        const goldLine = document.getElementById('gold-line');
+        const bulicText = document.getElementById('bulic-text');
+        const estText = document.getElementById('est-text');
+        const contentWrapper = document.getElementById('content-wrapper');
+        const ripple = document.getElementById('ripple');
+        const barTop = document.getElementById('bar-top');
+        const barBottom = document.getElementById('bar-bottom');
+
+        // Particle Generation
+        const createParticles = () => {
+          for (let i = 0; i < 40; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            const size = Math.random() * 2 + 2; // 2-4px
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 200 + 100; // 100-300px
+            const duration = Math.random() * 0.6 + 0.4; // 0.4-1.0s
+            const opacity = Math.random() * 0.6 + 0.4; // 0.4-1.0
+            
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = '50%';
+            particle.style.top = '50%';
+            
+            preloader.appendChild(particle);
+            
+            const destX = Math.cos(angle) * distance;
+            const destY = Math.sin(angle) * distance;
+            
+            particle.animate([
+              { transform: 'translate(-50%, -50%) scale(1)', opacity: opacity },
+              { transform: `translate(calc(-50% + ${destX}px), calc(-50% + ${destY}px)) scale(0)`, opacity: 0 }
+            ], {
+              duration: duration * 1000,
+              easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              fill: 'forwards'
+            });
+            
+            setTimeout(() => particle.remove(), duration * 1000);
+          }
+        };
+
+        // Text Generation
+        const text = "ZUBNA LABORATORIJA";
+        text.split('').forEach((char, i) => {
+          const span = document.createElement('span');
+          span.innerHTML = char === ' ' ? '&nbsp;' : char;
+          span.style.animationDelay = `${i * 0.04}s`;
+          zubnaText.appendChild(span);
+        });
+
+        // Animation Timeline
+        // Phase 1: Blackout (0.0s - 0.3s) - Handled by initial state
+
+        // Phase 2: Particle Burst (0.3s)
+        setTimeout(() => {
+          createParticles();
+          navyBleed.classList.add('active');
+        }, 300);
+
+        // Phase 3: Logo Reveal (0.8s)
+        setTimeout(() => {
+          logoAssembly.classList.add('active');
+          logoAssembly.classList.add('draw-brackets');
+        }, 800);
+
+        setTimeout(() => {
+          logoAssembly.classList.add('show-bg');
+          logoAssembly.classList.add('slam-b');
+        }, 1100);
+
+        // Phase 4: Text Reveal (1.8s)
+        setTimeout(() => {
+          zubnaText.classList.add('active');
+        }, 1800);
+
+        setTimeout(() => {
+          goldLine.classList.add('active');
+        }, 2000);
+
+        setTimeout(() => {
+          bulicText.classList.add('active');
+        }, 2150);
+
+        setTimeout(() => {
+          estText.classList.add('active');
+        }, 2300);
+
+        // Phase 5: Heartbeat Pulse (2.8s)
+        setTimeout(() => {
+          contentWrapper.classList.add('pulse');
+          ripple.classList.add('active');
+        }, 2800);
+
+        // Phase 6: Cinematic Exit (3.4s)
+        setTimeout(() => {
+          barTop.classList.add('slam');
+          barBottom.classList.add('slam');
+        }, 3400);
+
+        setTimeout(() => {
+          barTop.classList.remove('slam');
+          barBottom.classList.remove('slam');
+          barTop.classList.add('split-top');
+          barBottom.classList.add('split-bottom');
+          mainContent.classList.add('visible');
+          document.body.classList.add('loaded');
+        }, 3800);
+
+        setTimeout(() => {
+          preloader.remove();
+          barTop.remove();
+          barBottom.remove();
+          initScrollAnimations();
+        }, 4300);
+
+        // Scroll Animation Logic (Preserved)
+        const initScrollAnimations = () => {
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                const delay = entry.target.getAttribute('data-delay') || '0';
+                entry.target.style.transitionDelay = `${delay}s`;
+                if (entry.target.classList.contains('scale-bounce')) {
+                  entry.target.style.animationDelay = `${delay}s`;
+                }
+                entry.target.classList.add('animated');
+                
+                if (entry.target.classList.contains('counter-animate')) {
+                  const target = parseInt(entry.target.getAttribute('data-target') || '0');
+                  const duration = 2000;
+                  const start = performance.now();
+                  const el = entry.target;
+                  const updateCounter = (currentTime) => {
+                    const elapsed = currentTime - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easeProgress = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.floor(easeProgress * target);
+                    const suffix = el.getAttribute('data-suffix') || '';
+                    el.innerText = current + suffix;
+                    if (progress < 1) {
+                      if (el.classList.contains('animated')) {
+                        requestAnimationFrame(updateCounter);
+                      }
+                    } else {
+                      el.innerText = target + suffix;
+                    }
+                  };
+                  requestAnimationFrame(updateCounter);
+                }
+              } else {
+                if (!entry.target.classList.contains('animate-once')) {
+                  entry.target.classList.remove('animated');
+                  entry.target.style.transitionDelay = '0s';
+                  if (entry.target.classList.contains('scale-bounce')) {
+                    entry.target.style.animationDelay = '0s';
+                  }
+                  if (entry.target.classList.contains('counter-animate')) {
+                    entry.target.innerText = '0' + (entry.target.getAttribute('data-suffix') || '');
+                  }
+                }
+              }
+            });
+          }, { threshold: 0.15 });
+
+          const mutationObserver = new MutationObserver((mutations) => {
+            mutations.forEach(mutation => {
+              mutation.addedNodes.forEach(node => {
+                if (node.nodeType === 1) {
+                  if (node.classList && node.classList.contains('animate-on-scroll')) {
+                    observer.observe(node);
+                  }
+                  const animatedChildren = node.querySelectorAll('.animate-on-scroll');
+                  animatedChildren.forEach(child => observer.observe(child));
+                }
+              });
+            });
+          });
+
+          mutationObserver.observe(document.body, { childList: true, subtree: true });
+          document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+        };
+      });
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
